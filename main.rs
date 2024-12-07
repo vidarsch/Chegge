@@ -40,7 +40,7 @@ async fn main() {
         host: "localhost".to_string(),
         port: 3306,
         username: "root".to_string(),
-        password: "u92kxaCU".to_string(),
+        password: "password".to_string(),
         database: "chegge_man".to_string(),
     };
 
