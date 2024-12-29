@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ws.onopen = function() {
         console.log('Connected to WebSocket server');
         appendMessage('Connected to server');
+        fetchMessages();
         //getTerrain(document.getElementById('bottomDiv').offsetHeight, document.getElementById('bottomDiv').offsetWidth);
     };
 

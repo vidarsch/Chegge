@@ -39,8 +39,8 @@ async fn main() {
     let db_config = DbConfig {
         host: "localhost".to_string(),
         port: 3306,
-        username: "root".to_string(),
-        password: "password".to_string(),
+        username: "admin".to_string(),
+        password: "L3wAYEqYydft".to_string(),
         database: "cheggeserver".to_string(),
     };
 
@@ -59,8 +59,8 @@ async fn main() {
 
     let state = ServerState::new(pool);
     
-    let listener = TcpListener::bind("127.0.0.1:8080").await.unwrap();
-    println!("WebSocket server listening on ws://127.0.0.1:8080");
+    let listener = TcpListener::bind("92.113.145.13:8080").await.unwrap();
+    println!("WebSocket server listening on ws://92.113.145.13:8080");
 
     while let Ok((stream, addr)) = listener.accept().await {
         let state = state.clone();
@@ -73,16 +73,16 @@ async fn handle_connection(
     addr: SocketAddr, 
     state: Arc<ServerState>
 ) {
-    // Get connection details before upgrading to WebSocket
+    // Get connection details
     let callback = |request: &Request, response: Response| {
-        // Extract headers we're interested in
+
         let user_agent = request.headers()
             .get("user-agent")
             .and_then(|h| h.to_str().ok())
             .unwrap_or("Unknown")
             .to_string();
         
-        // Instead of awaiting here, we'll just log the info
+
         println!("New connection from:");
         println!("  IP Address: {}", addr);
         println!("  User Agent: {}", user_agent);
@@ -93,7 +93,6 @@ async fn handle_connection(
             }
         }
 
-        // Spawn a task to handle the database insertion
         let state = state.clone();
         let addr = addr.clone();
         let user_agent = user_agent.clone();
@@ -116,18 +115,18 @@ async fn handle_connection(
     let (mut write, mut read) = ws_stream.split();
     let mut rx = state.tx.subscribe();
 
-    // Create a channel for sending messages from the read task to the write task
     let (tx_internal, mut rx_internal) = tokio::sync::mpsc::channel(32);
 
-    // Handle broadcast messages and internal messages
     let write_task = tokio::spawn(async move {
         loop {
             tokio::select! {
-                // Handle broadcast messages
+
                 result = rx.recv() => {
                     match result {
                         Ok(msg) => {
-                            if let Err(e) = write.send(format_ws_message(&msg)).await {
+                            let formatted_message = format_ws_message(&msg);
+                            println!("Attempting to send message: {:?}", formatted_message);
+                            if let Err(e) = write.send(formatted_message).await {
                                 println!("Error sending broadcast message: {}", e);
                                 break;
                             }
@@ -138,7 +137,7 @@ async fn handle_connection(
                         }
                     }
                 }
-                // Handle internal messages (like fetch_messages responses)
+
                 Some(msg) = rx_internal.recv() => {
                     if let Err(e) = write.send(msg).await {
                         println!("Error sending internal message: {}", e);

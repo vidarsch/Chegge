@@ -23,12 +23,11 @@ impl ServerState {
     }
 
     pub async fn broadcast_message(&self, msg: ChatMessage) -> Result<(), broadcast::error::SendError<ChatMessage>> {
-        // Save to database first
+
         if let Err(e) = self.save_message(&msg).await {
             eprintln!("Error saving message to database: {}", e);
         }
         
-        // Then broadcast and ignore the number of receivers
         self.tx.send(msg).map(|_| ())
     }
 
