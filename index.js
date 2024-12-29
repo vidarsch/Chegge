@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const nameInput = document.querySelector('.name-input');
-    const ws = new WebSocket('ws://localhost:8080');
+    const ws = new WebSocket('ws://92.113.145.13:8080');
 
     function sendName(name) {
         if (ws.readyState === WebSocket.OPEN && name.length > 0) {
@@ -24,22 +24,22 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Blur event');
         sendName(this.value);
     });
-});
-document.addEventListener('DOMContentLoaded', function() {
     const messageInput = document.querySelector('.message-input');
-    const ws = new WebSocket('ws://localhost:8080');
+
     function sendMessage(message, name) {
         if (ws.readyState === WebSocket.OPEN && message.length > 0) {
+            name = name.length > 0 ? name : "Anonymous";
             ws.send(JSON.stringify({
                 type: "message",
                 message: message,
                 name: name
             }));
-            name = name.length > 0 ? name : "Anonymous";
             appendMessage(name, message);
             messageInput.value = '';
             
             console.log('Sent message:', message);
+        } else {
+            appendMessage("Laggbugg", message);
         }
     }
 
@@ -55,30 +55,4 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMessage(this.value,document.querySelector('.name-input').value);
     });
 });
-document.addEventListener('DOMContentLoaded', function() {
-    const golfClub = document.querySelector('.golf-club');
-    const golfBall = document.querySelector('.golf-ball');
-    let isSwinging = false;
 
-    document.addEventListener('mousedown', function(e) {
-        if (e.button === 0 && !isSwinging) { // Left mouse button
-            isSwinging = true;
-            
-            // Add swing animation
-            golfClub.style.transition = 'transform 0.5s ease-in-out';
-            golfClub.style.transform = 'rotate(-45deg)';
-            golfBall.style.transition = 'transform 0.5s ease-in-out';
-            golfBall.style.transform = 'translate(100px, -100px)';
-
-            // Return to original position
-            setTimeout(() => {
-                golfClub.style.transform = 'rotate(45deg)';
-                golfClub.style.transform = 'rotate(45deg)';
-                //golfBall.style.transform = 'translate(0px, 0px)';
-                setTimeout(() => {
-                    isSwinging = false;
-                }, 500);
-            }, 500);
-        }
-    });
-});

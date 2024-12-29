@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Connect to Rust WebSocket server (assuming it runs on localhost:8080)
-    const ws = new WebSocket('ws://localhost:8080');
+    const ws = new WebSocket('ws://92.113.145.13:8080');
     const messagesDiv = document.getElementById('messages');
 
     ws.onopen = function() {
         console.log('Connected to WebSocket server');
         appendMessage('Connected to server');
-        getTerrain(document.getElementById('bottomDiv').offsetHeight, document.getElementById('bottomDiv').offsetWidth);
+        //getTerrain(document.getElementById('bottomDiv').offsetHeight, document.getElementById('bottomDiv').offsetWidth);
     };
 
     ws.onmessage = function(event) {
