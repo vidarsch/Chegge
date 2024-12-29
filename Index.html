@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Course Website</title>
+    <style>
+        /* Prevent horizontal scrolling across the entire page */
+        html, body {
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+
+        /* Apply box-sizing to all elements for consistency */
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            margin: 0;
+            padding: 0; /* Remove padding to maximize space */
+            background-color: #90CC90;
+            background-image: linear-gradient(45deg, #82C182 25%, transparent 25%),
+                            linear-gradient(-45deg, #82C182 25%, transparent 25%),
+                            linear-gradient(45deg, transparent 75%, #82C182 75%),
+                            linear-gradient(-45deg, transparent 75%, #82C182 75%);
+            background-size: 20px 20px;
+            min-height: 100vh; /* Ensure full viewport height */
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            height: 40vh; /* Take up half the viewport height */
+            width: 80vw;
+            overflow-y: auto; /* Add scroll if content overflows */
+            position: relative; /* For proper positioning */
+            z-index: 20; /* Above the bottom div */
+        }
+        h1 {
+            color: #2E5A27;
+            text-align: left;
+            border-bottom: 3px solid #2E5A27;
+            padding-bottom: 10px;
+            display: inline-block;
+            margin-right: 20px;
+        }
+        p {
+            color: #333;
+            line-height: 1.6;
+        }
+        #messages {
+            border: 2px solid #2E5A27;
+            padding: 15px;
+            margin-top: 20px;
+            height: 200px;
+            overflow-y: auto;
+            background-image: url('pictures/cheking.png');
+            background-position: center;
+            background-size: contain;
+            background-repeat: repeat;
+            background-color: rgba(255, 255, 255, 0.377);
+            border-radius: 8px;
+        }
+        h1::before {
+            content: "⛳";
+            margin-right: 10px;
+        }
+        h1::after {
+            content: "⛳";
+            margin-left: 10px;
+        }
+        .invisible-bottom-div {
+            border: 15px solid;
+            border-right: 15px solid;
+            border-image: repeating-linear-gradient(
+                90deg,
+                #8B4513,
+                #A0522D 10px,
+                #6B4423 20px,
+                #8B4513 30px
+            ) 1;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50vh; /* Take up half the viewport height */
+            border-top: 15px solid;
+            border-image: repeating-linear-gradient(
+                90deg,
+                #8B4513,
+                #A0522D 10px,
+                #6B4423 20px,
+                #8B4513 30px
+            ) 1;
+            z-index: 10;
+        }
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.089);
+        }
+        .name-input {
+            padding: 8px 12px;
+            border: 2px solid #2E5A27;
+            border-radius: 5px;
+            font-size: 16px;
+            color: #333;
+            background-color: white;
+        }
+        .name-input::placeholder {
+            color: #888;
+        }
+        .message-wrapper {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+            text-align: left;
+        }
+        .message {
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 5px;
+            max-width: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0.85),
+                rgba(255, 255, 255, 0.7)
+            );
+            box-shadow: 0 2px 8px rgba(46, 90, 39, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(2px);
+            min-width: 100px;
+            float: left;
+            clear: both;
+        }
+        .message .user {
+            font-weight: bold;
+            color: #2E5A27;
+            margin-right: 8px;
+            text-shadow: 1px 1px 1px rgba(255, 255, 255, 0.8);
+        }
+        .message .text {
+            color: #333333;
+            font-size: 1.1em;
+            text-shadow: 0.5px 0.5px 0px rgba(255, 255, 255, 0.8);
+            word-wrap: break-word;
+            white-space: normal;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .container {
+                width: 100vw;
+                height: auto;
+                padding: 15px;
+            }
+            
+            .header-container {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            p {
+                display: none; /* Hide the descriptive paragraph */
+            }
+
+            .message-input {
+                display: block; /* Show the message input field */
+                width: 100%;
+                padding: 8px;
+                margin-top: 10px;
+                border: 2px solid #2E5A27;
+                border-radius: 5px;
+            }
+
+            #messages {
+                height: calc(100vh - 160px); /* Adjust height to leave space for input */
+                width: 100%;
+                overflow-x: hidden;
+            }
+
+            .invisible-bottom-div {
+                display: block; /* Show the bottom decorative div */
+                height: 50vh; /* Ensure it occupies space for scrolling */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <h1>Välkomen till Chegge Golf</h1>
+            <input type="text" class="name-input" placeholder="Enter name" />
+        </div>
+       
+        <p>Experience the perfect swing with our WebSocket connection.</p>
+        <div id="messages"></div>
+        <input type="text" class="message-input" placeholder="Type a message..." style="width: 100%; padding: 8px; margin-top: 10px; border: 2px solid #2E5A27; border-radius: 5px;" />
+    </div>
+    <div class="invisible-bottom-div" id="bottomDiv">
+        <div class="golf-container">
+            <div class="golf-club">
+                <div class="club-head"></div>
+                <div class="club-grip"></div>   
+            </div>
+            <div class="golf-ball">
+            </div>   
+        </div>
+    </div>
+    <script src="index.js"></script>
+    <script src="websocket.js"></script>
+</body>
+</html>
+

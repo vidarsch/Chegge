@@ -55,3 +55,30 @@ document.addEventListener('DOMContentLoaded', function() {
         sendMessage(this.value,document.querySelector('.name-input').value);
     });
 });
+document.addEventListener('DOMContentLoaded', function() {
+    const golfClub = document.querySelector('.golf-club');
+    const golfBall = document.querySelector('.golf-ball');
+    let isSwinging = false;
+
+    document.addEventListener('mousedown', function(e) {
+        if (e.button === 0 && !isSwinging) { // Left mouse button
+            isSwinging = true;
+            
+            // Add swing animation
+            golfClub.style.transition = 'transform 0.5s ease-in-out';
+            golfClub.style.transform = 'rotate(-45deg)';
+            golfBall.style.transition = 'transform 0.5s ease-in-out';
+            golfBall.style.transform = 'translate(100px, -100px)';
+
+            // Return to original position
+            setTimeout(() => {
+                golfClub.style.transform = 'rotate(45deg)';
+                golfClub.style.transform = 'rotate(45deg)';
+                //golfBall.style.transform = 'translate(0px, 0px)';
+                setTimeout(() => {
+                    isSwinging = false;
+                }, 500);
+            }, 500);
+        }
+    });
+});

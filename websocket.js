@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Received:', event);
         if (event.type === "message") { 
             let data = JSON.parse(event.data);
-            data.forEach(message => {
+            data.slice().reverse().forEach(message => {
                 appendMessage(message[1], message[0]);
             });
         } else {
