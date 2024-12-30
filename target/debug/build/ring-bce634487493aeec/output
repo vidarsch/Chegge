@@ -1,7 +1,7 @@
 cargo:rerun-if-env-changed=RING_PREGENERATE_ASM
 cargo:rustc-env=RING_CORE_PREFIX=ring_core_0_17_8_
 OPT_LEVEL = Some(0)
-OUT_DIR = Some(E:\C0D3\git\Chegge\target\debug\build\ring-bce634487493aeec\out)
+OUT_DIR = Some(E:\C0D3\Git\Chegge\target\debug\build\ring-bce634487493aeec\out)
 TARGET = Some(x86_64-pc-windows-msvc)
 cargo:rerun-if-env-changed=VCINSTALLDIR
 VCINSTALLDIR = None
@@ -15,7 +15,7 @@ cargo:rerun-if-env-changed=WindowsSDKVersion
 WindowsSDKVersion = None
 cargo:rerun-if-env-changed=LIB
 LIB = None
-PATH = Some(E:\C0D3\git\Chegge\target\debug\deps;E:\C0D3\git\Chegge\target\debug;C:\Users\Vidar\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib\rustlib\x86_64-pc-windows-msvc\lib;c:\Users\Vidar\AppData\Local\Programs\cursor\resources\app\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\nodejs\;C:\Program Files\dotnet\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Users\Vidar\AppData\Local\Programs\Python\Launcher\;C:\Users\Vidar\AppData\Local\Microsoft\WindowsApps;C:\Users\Vidar\AppData\Roaming\npm;C:\Users\Vidar\AppData\Local\MaxTo\;;c:\Users\Vidar\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\Vidar\.cargo\bin;C:\Users\Vidar\AppData\Local\Programs\Python\Launcher\;C:\Users\Vidar\AppData\Local\Microsoft\WindowsApps;C:\Users\Vidar\AppData\Roaming\npm;C:\Users\Vidar\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Vidar\AppData\Local\MaxTo\;)
+PATH = Some(E:\C0D3\Git\Chegge\target\debug\deps;E:\C0D3\Git\Chegge\target\debug;C:\Users\Vidar\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib\rustlib\x86_64-pc-windows-msvc\lib;c:\Users\Vidar\AppData\Local\Programs\cursor\resources\app\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\nodejs\;C:\Program Files\dotnet\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Users\Vidar\AppData\Local\Programs\Python\Launcher\;C:\Users\Vidar\AppData\Local\Microsoft\WindowsApps;C:\Users\Vidar\AppData\Roaming\npm;C:\Users\Vidar\AppData\Local\MaxTo\;;c:\Users\Vidar\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\Vidar\.cargo\bin;C:\Users\Vidar\AppData\Local\Programs\Python\Launcher\;C:\Users\Vidar\AppData\Local\Microsoft\WindowsApps;C:\Users\Vidar\AppData\Roaming\npm;C:\Users\Vidar\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Vidar\AppData\Local\MaxTo\;)
 cargo:rerun-if-env-changed=INCLUDE
 INCLUDE = None
 HOST = Some(x86_64-pc-windows-msvc)
@@ -58,7 +58,7 @@ poly1305_vec.c
 p256-nistz.c
 cargo:rustc-link-lib=static=ring_core_0_17_8_
 OPT_LEVEL = Some(0)
-OUT_DIR = Some(E:\C0D3\git\Chegge\target\debug\build\ring-bce634487493aeec\out)
+OUT_DIR = Some(E:\C0D3\Git\Chegge\target\debug\build\ring-bce634487493aeec\out)
 TARGET = Some(x86_64-pc-windows-msvc)
 cargo:rerun-if-env-changed=VCINSTALLDIR
 VCINSTALLDIR = None
@@ -72,7 +72,7 @@ cargo:rerun-if-env-changed=WindowsSDKVersion
 WindowsSDKVersion = None
 cargo:rerun-if-env-changed=LIB
 LIB = None
-PATH = Some(E:\C0D3\git\Chegge\target\debug\deps;E:\C0D3\git\Chegge\target\debug;C:\Users\Vidar\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib\rustlib\x86_64-pc-windows-msvc\lib;c:\Users\Vidar\AppData\Local\Programs\cursor\resources\app\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\nodejs\;C:\Program Files\dotnet\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Users\Vidar\AppData\Local\Programs\Python\Launcher\;C:\Users\Vidar\AppData\Local\Microsoft\WindowsApps;C:\Users\Vidar\AppData\Roaming\npm;C:\Users\Vidar\AppData\Local\MaxTo\;;c:\Users\Vidar\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\Vidar\.cargo\bin;C:\Users\Vidar\AppData\Local\Programs\Python\Launcher\;C:\Users\Vidar\AppData\Local\Microsoft\WindowsApps;C:\Users\Vidar\AppData\Roaming\npm;C:\Users\Vidar\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Vidar\AppData\Local\MaxTo\;)
+PATH = Some(E:\C0D3\Git\Chegge\target\debug\deps;E:\C0D3\Git\Chegge\target\debug;C:\Users\Vidar\.rustup\toolchains\stable-x86_64-pc-windows-msvc\lib\rustlib\x86_64-pc-windows-msvc\lib;c:\Users\Vidar\AppData\Local\Programs\cursor\resources\app\bin;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\nodejs\;C:\Program Files\dotnet\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Users\Vidar\AppData\Local\Programs\Python\Launcher\;C:\Users\Vidar\AppData\Local\Microsoft\WindowsApps;C:\Users\Vidar\AppData\Roaming\npm;C:\Users\Vidar\AppData\Local\MaxTo\;;c:\Users\Vidar\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files\MySQL\MySQL Shell 8.0\bin\;C:\Users\Vidar\.cargo\bin;C:\Users\Vidar\AppData\Local\Programs\Python\Launcher\;C:\Users\Vidar\AppData\Local\Microsoft\WindowsApps;C:\Users\Vidar\AppData\Roaming\npm;C:\Users\Vidar\AppData\Local\Programs\Microsoft VS Code\bin;C:\Users\Vidar\AppData\Local\MaxTo\;)
 cargo:rerun-if-env-changed=INCLUDE
 INCLUDE = None
 HOST = Some(x86_64-pc-windows-msvc)
@@ -99,7 +99,7 @@ CFLAGS = None
 CARGO_ENCODED_RUSTFLAGS = Some()
 constant_time_test.c
 cargo:rustc-link-lib=static=ring_core_0_17_8_test
-cargo:rustc-link-search=native=E:\C0D3\git\Chegge\target\debug\build\ring-bce634487493aeec\out
+cargo:rustc-link-search=native=E:\C0D3\Git\Chegge\target\debug\build\ring-bce634487493aeec\out
 cargo:rerun-if-changed=crypto\chacha\asm\chacha-armv4.pl
 cargo:rerun-if-changed=crypto\chacha\asm\chacha-armv8.pl
 cargo:rerun-if-changed=crypto\chacha\asm\chacha-x86.pl

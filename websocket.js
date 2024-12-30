@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Connect to Rust WebSocket server (assuming it runs on localhost:8080)
     const ws = new WebSocket('ws://92.113.145.13:8080');
     const messagesDiv = document.getElementById('messages');
+    const uid = 0;
 
     ws.onopen = function() {
         console.log('Connected to WebSocket server');
@@ -14,9 +15,17 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Received:', event);
         if (event.type === "message") { 
             let data = JSON.parse(event.data);
-            data.slice().reverse().forEach(message => {
-                appendMessage(message[1], message[0]);
-            });
+            console.log(data);
+            if (data.uid) {
+                uid = data.uid;
+            }
+            if (!data.name) {
+                data.reverse().forEach(message => {
+                    appendMessage(message[1], message[0]);
+                });
+            } else {
+                appendMessage(data.name, data.message);
+            }
         } else {
             console.log('Received:', event);
             console.log('Received:', event.data);

@@ -17,17 +17,17 @@ pub struct ServerState {
 }
 
 impl ServerState {
-    pub fn new(pool: MySqlPool) -> Arc<Self> {
-        let (tx, _rx) = broadcast::channel(100);
+    pub fn new(pool: MySqlPool, capacity: usize) -> Arc<Self> {
+        let (tx, _rx) = broadcast::channel(capacity);
         Arc::new(ServerState { tx, pool })
     }
 
     pub async fn broadcast_message(&self, msg: ChatMessage) -> Result<(), broadcast::error::SendError<ChatMessage>> {
-
         if let Err(e) = self.save_message(&msg).await {
             eprintln!("Error saving message to database: {}", e);
         }
         
+        println!("Broadcasting message from {}: {}", msg.name, msg.message);
         self.tx.send(msg).map(|_| ())
     }
 

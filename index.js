@@ -14,16 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     nameInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
+        let mess = messageInput = document.querySelector('.message-input').value;
+        if (e.key === 'Enter' && mess.length > 0) {
             console.log('Enter pressed');
             sendName(this.value);
         }
     });
 
-    nameInput.addEventListener('blur', function() {
-        console.log('Blur event');
-        sendName(this.value);
-    });
     const messageInput = document.querySelector('.message-input');
 
     function sendMessage(message, name) {
@@ -34,12 +31,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 message: message,
                 name: name
             }));
-            appendMessage(name, message);
             messageInput.value = '';
             
             console.log('Sent message:', message);
         } else {
-            appendMessage("Laggbugg", message);
+            appendMessage("Laggbugg", "Något gick fel");
         }
     }
 
@@ -50,9 +46,5 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    messageInput.addEventListener('blur', function() {
-        console.log('Blur event');
-        sendMessage(this.value,document.querySelector('.name-input').value);
-    });
 });
 

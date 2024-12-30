@@ -1,5 +1,6 @@
 mod chat;
 use chat::{ServerState, ChatMessage, format_ws_message};
+use tokio::sync::broadcast;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite;
 use futures::{SinkExt, StreamExt};
@@ -9,6 +10,10 @@ use tokio_tungstenite::tungstenite::handshake::server::{Request, Response};
 use sqlx::mysql::MySqlPool;
 use sqlx::Error as SqlxError;
 use std::sync::Arc;
+use tokio::sync::broadcast::error::RecvError;
+use tokio::time::{interval, Duration};
+use std::sync::atomic::{AtomicBool, Ordering};
+use tokio_tungstenite::tungstenite::Message as WsMessage;
 
 #[derive(Deserialize)]
 struct IncomingMessage {
@@ -35,12 +40,11 @@ struct ClientInfo {
 
 #[tokio::main]
 async fn main() {
-
     let db_config = DbConfig {
         host: "localhost".to_string(),
         port: 3306,
         username: "admin".to_string(),
-        password: "L3wAYEqYydft".to_string(),
+        password: "mNJw246a5CkL".to_string(),
         database: "cheggeserver".to_string(),
     };
 
@@ -57,7 +61,7 @@ async fn main() {
         .await
         .expect("Failed to connect to database");
 
-    let state = ServerState::new(pool);
+    let state = ServerState::new(pool, 1000);
     
     let listener = TcpListener::bind("92.113.145.13:8080").await.unwrap();
     println!("WebSocket server listening on ws://92.113.145.13:8080");
@@ -73,31 +77,26 @@ async fn handle_connection(
     addr: SocketAddr, 
     state: Arc<ServerState>
 ) {
-    // Get connection details
     let callback = |request: &Request, response: Response| {
-
         let user_agent = request.headers()
             .get("user-agent")
             .and_then(|h| h.to_str().ok())
             .unwrap_or("Unknown")
             .to_string();
         
-
-        println!("New connection from:");
-        println!("  IP Address: {}", addr);
-        println!("  User Agent: {}", user_agent);
-        println!("  Headers:");
+        println!("New connection from {}", addr);
+        println!("User Agent: {}", user_agent);
         for (name, value) in request.headers() {
             if let Ok(value_str) = value.to_str() {
-                println!("    {}: {}", name, value_str);
+                println!("  {}: {}", name, value_str);
             }
         }
 
-        let state = state.clone();
-        let addr = addr.clone();
-        let user_agent = user_agent.clone();
+        let state_clone = state.clone();
+        let addr_clone = addr.clone();
+        let user_agent_clone = user_agent.clone();
         tokio::spawn(async move {
-            if let Err(e) = query_users(&state.pool, addr, user_agent).await {
+            if let Err(e) = query_users(&state_clone.pool, addr_clone, user_agent_clone).await {
                 eprintln!("Error logging user: {}", e);
             }
         });
@@ -105,123 +104,150 @@ async fn handle_connection(
         Ok(response)
     };
 
-    let ws_stream = tokio_tungstenite::accept_hdr_async(
-        stream,
-        callback
-    ).await.expect("Failed to accept WebSocket connection");
+    let ws_stream = match tokio_tungstenite::accept_hdr_async(stream, callback).await {
+        Ok(ws) => ws,
+        Err(e) => {
+            eprintln!("WebSocket handshake failed for {}: {}", addr, e);
+            return;
+        }
+    };
 
-    println!("WebSocket connection established");
+    println!("WebSocket connection established with {}", addr);
 
     let (mut write, mut read) = ws_stream.split();
     let mut rx = state.tx.subscribe();
 
     let (tx_internal, mut rx_internal) = tokio::sync::mpsc::channel(32);
 
-    let write_task = tokio::spawn(async move {
+    let is_active = Arc::new(AtomicBool::new(true));
+    let is_active_write = is_active.clone();
+    let is_active_read = is_active.clone();
+
+    let mut ping_interval = interval(Duration::from_secs(30));
+
+    let mut write_task = Some(tokio::spawn(async move {
         loop {
             tokio::select! {
+                _ = ping_interval.tick() => {
+                    if let Err(e) = write.send(WsMessage::Ping(vec![])).await {
+                        eprintln!("Failed to send ping to {}: {}", addr, e);
+                        break;
+                    }
+                }
 
                 result = rx.recv() => {
                     match result {
                         Ok(msg) => {
                             let formatted_message = format_ws_message(&msg);
-                            println!("Attempting to send message: {:?}", formatted_message);
+                            println!("Sending message to {}: {:?}", addr, formatted_message);
                             if let Err(e) = write.send(formatted_message).await {
-                                println!("Error sending broadcast message: {}", e);
+                                eprintln!("Error sending message to {}: {}", addr, e);
+                                is_active_write.store(false, Ordering::SeqCst);
                                 break;
                             }
                         }
+                        Err(RecvError::Lagged(count)) => {
+                            eprintln!("{} lagged by {} messages.", addr, count);
+                            continue;
+                        }
                         Err(e) => {
-                            println!("Broadcast channel error: {}", e);
+                            eprintln!("Broadcast error for {}: {}", addr, e);
+                            is_active_write.store(false, Ordering::SeqCst);
                             break;
                         }
                     }
                 }
 
                 Some(msg) = rx_internal.recv() => {
+                    println!("Sending internal message to {}: {:?}", addr, msg);
                     if let Err(e) = write.send(msg).await {
-                        println!("Error sending internal message: {}", e);
+                        eprintln!("Error sending internal message to {}: {}", addr, e);
+                        is_active_write.store(false, Ordering::SeqCst);
                         break;
                     }
                 }
+
                 else => break,
             }
         }
-    });
+    }));
 
-    // Handle incoming messages
-    let state_clone = state.clone();
-    let tx_internal_clone = tx_internal.clone();
-    let read_task = tokio::spawn(async move {
-        while let Some(Ok(msg)) = read.next().await {
-            if let Ok(text) = msg.to_text() {
-                if let Ok(incoming) = serde_json::from_str::<IncomingMessage>(text) {
-                    match incoming.r#type.as_str() {
-                        "message" => {
-                            let chat_msg = ChatMessage {
-                                name: incoming.name.unwrap_or_else(|| "Anonymous".to_string()),
-                                message: incoming.message.unwrap_or_default(),
-                            };
-                            
-                            if let Err(e) = state_clone.broadcast_message(chat_msg).await {
-                                eprintln!("Error broadcasting message: {}", e);
-                            }
-                        },
-                        "fetch_messages" => {
-                            if let Ok(messages) = state_clone.fetch_recent_messages().await {
-                                if let Err(e) = tx_internal_clone.send(messages).await {
-                                    eprintln!("Error sending message history: {}", e);
+    let mut read_task = Some(tokio::spawn({
+        let state_clone = state.clone();
+        let tx_internal_clone = tx_internal.clone();
+        let is_active_read = is_active_read.clone();
+        async move {
+            while let Some(result) = read.next().await {
+                match result {
+                    Ok(msg) => {
+                        if let Ok(text) = msg.to_text() {
+                            if let Ok(incoming) = serde_json::from_str::<IncomingMessage>(text) {
+                                match incoming.r#type.as_str() {
+                                    "message" => {
+                                        let chat_msg = ChatMessage {
+                                            name: incoming.name.unwrap_or_else(|| "Anonymous".to_string()),
+                                            message: incoming.message.unwrap_or_default(),
+                                        };
+                                        println!("Received message from {}: {}", addr, chat_msg.message);
+                                        if let Err(e) = state_clone.broadcast_message(chat_msg).await {
+                                            eprintln!("Error broadcasting message: {}", e);
+                                        }
+                                    },
+                                    "fetch_messages" => {
+                                        if let Ok(messages) = state_clone.fetch_recent_messages().await {
+                                            println!("Sending message history to {}", addr);
+                                            if let Err(e) = tx_internal_clone.send(messages).await {
+                                                eprintln!("Error sending message history to {}: {}", addr, e);
+                                            }
+                                        }
+                                    },
+                                    _ => {
+                                        eprintln!("Unknown message type from {}: {}", addr, incoming.r#type);
+                                    }
                                 }
+                            } else {
+                                eprintln!("Failed to parse incoming message from {}: {}", addr, text);
                             }
-                        },
-                        // Handle any other message types
-                        _ => {
-                            println!("Unknown message type received");
-                            println!("Message details:");
-                            println!("  Type: {}", incoming.r#type);
-                            if let Some(name) = &incoming.name {
-                                println!("  From user: {}", name);
-                            }
-                            if let Some(msg) = &incoming.message {
-                                println!("  Content: {}", msg);
-                            }
-                            eprintln!("Warning: No handler implemented for this message type");
                         }
+                    }
+                    Err(e) => {
+                        eprintln!("Error receiving message from {}: {}", addr, e);
+                        is_active_read.store(false, Ordering::SeqCst);
+                        break;
                     }
                 }
             }
+            is_active_read.store(false, Ordering::SeqCst);
         }
-    });
+    }));
 
     tokio::select! {
-        _ = write_task => println!("Write task completed"),
-        _ = read_task => println!("Read task completed"),
+        _ = write_task.as_mut().unwrap() => {
+            println!("Write task completed for {}", addr);
+            if let Some(read) = read_task.take() {
+                read.abort();
+            }
+        },
+        _ = read_task.as_mut().unwrap() => {
+            println!("Read task completed for {}", addr);
+            if let Some(write) = write_task.take() {
+                write.abort();
+            }
+        },
     }
 
-    println!("Connection closed");
+    println!("Connection with {} closed", addr);
 }
+
 async fn get_terrain(height: u32, width: u32) {
     println!("Height: {}, Width: {}", height, width);
 }
 
-async fn query_terrain(pool: &MySqlPool, height: u32, width: u32) -> Result<tokio_tungstenite::tungstenite::Message, SqlxError> {
-    // Example query - adjust according to your schema
-    let row: (String,) = sqlx::query_as(
-        "SELECT terrain_data FROM terrains WHERE height = ? AND width = ?"
-    )
-    .bind(height)
-    .bind(width)
-    .fetch_one(pool)
-    .await?;
-
-    Ok(tokio_tungstenite::tungstenite::Message::Text(row.0))
-}
 async fn query_users(
     pool: &MySqlPool, 
     addr: SocketAddr,
     accept_language: String,
 ) -> Result<(), SqlxError> {
-    // Insert user connection data
     sqlx::query(
         "INSERT INTO users_log (ip_address, accept_language, created_at) 
          VALUES (?, ?, NOW())"
@@ -232,39 +258,4 @@ async fn query_users(
     .await?;
 
     Ok(())
-}
-
-async fn update_message(pool: &MySqlPool, message: String, name: String) -> Result<(), SqlxError> {
-    let name = if name.is_empty() { "Anonymous".to_string() } else { name };
-        sqlx::query(
-            "INSERT INTO messages (message, unique_user, created_at) 
-         VALUES (?, ?, NOW())"
-    )
-    .bind(message)
-    .bind(name)
-    .execute(pool)
-    .await?;
-
-    Ok(())
-}
-async fn update_name(pool: &MySqlPool, message: String) -> Result<(), SqlxError> {
-    sqlx::query(
-        "INSERT INTO messages (message, unique_users, created_at) 
-         VALUES (?, UUID(), NOW())"
-    )
-    .bind(message)
-    .execute(pool)
-    .await?;
-
-    Ok(())
-}
-
-async fn fetch_messages(pool: &MySqlPool) -> Result<tokio_tungstenite::tungstenite::Message, SqlxError> {
-    let messages: Vec<(String, String)> = sqlx::query_as(
-        "SELECT message, unique_user FROM messages ORDER BY created_at DESC LIMIT 50"
-    ).fetch_all(pool).await?;
-
-    Ok(tokio_tungstenite::tungstenite::Message::Text(
-        serde_json::to_string(&messages).unwrap()
-    ))
 }
