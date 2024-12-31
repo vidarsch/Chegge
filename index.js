@@ -1,23 +1,25 @@
 document.addEventListener('DOMContentLoaded', function() {
     const nameInput = document.querySelector('.name-input');
     const ws = new WebSocket('ws://92.113.145.13:8080');
+    document.querySelector('.name-input').value = getCookie();
 
     function sendName(name) {
-        if (ws.readyState === WebSocket.OPEN && name.length > 0) {
+        //document.cookie = "username=hej"; // + name;
+        /* if (ws.readyState === WebSocket.OPEN && name.length > 0) {
             ws.send(JSON.stringify({
                 type: "update_name",
                 name: name
             }));
             //nameInput.value = '';
             console.log('Sent name:', name);
-        }
+        } */
     }
 
-    nameInput.addEventListener('keypress', function(e) {
-        let mess = messageInput = document.querySelector('.message-input').value;
-        if (e.key === 'Enter' && mess.length > 0) {
-            console.log('Enter pressed');
-            sendName(this.value);
+    nameInput.addEventListener('focusout', function(e) {
+        //let mess = messageInput = document.querySelector('.message-input').value;
+        if (this.value.length > 0) {
+            console.log('name saved in cookie');
+            setCookie(this.value);
         }
     });
 
