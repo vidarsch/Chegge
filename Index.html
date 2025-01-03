@@ -6,6 +6,13 @@
     <script src="cookie.js"></script>
     <title>Golf Course Website</title>
     <style>
+        /* Apply box-sizing globally */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
         /* Prevent horizontal scrolling across the entire page */
         html, body {
             overflow-x: hidden;
@@ -175,12 +182,73 @@
             top: 20px;
             right: 20px;
         }
+
+        /* Style for the input container */
+        .input-container {
+            display: flex;
+            align-items: center;
+            gap: 10px; /* Space between the upload button and input field */
+            margin-top: 10px;
+        }
+
+        /* Hide the actual file input */
+        #image-upload {
+            display: none;
+        }
+
+        /* Style the upload button */
+        .upload-button {
+            background-color: #2E5A27;
+            color: white;
+            padding: 8px 12px; /* Consistent padding */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em; /* Consistent font size */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px; /* Explicit height */
+        }
+
+        .upload-button:hover {
+            background-color: #3f7a3f;
+        }
+
+        /* Ensure the message input takes the remaining space */
+        .message-input {
+            flex: 1;
+            padding: 8px 12px; /* Consistent padding */
+            border: 2px solid #2E5A27;
+            border-radius: 5px;
+            font-size: 1em; /* Consistent font size */
+            color: #333;
+            background-color: white;
+            height: 40px; /* Same explicit height as upload-button */
+            box-sizing: border-box; /* Include padding and border in height */
+        }
+
+        /* Style for uploaded images */
+        .uploaded-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 5px;
+            margin: 8px 0;
+            box-shadow: 0 2px 8px rgba(46, 90, 39, 0.15);
+        }
+
+        /* Responsive adjustments if necessary */
+        @media (max-width: 768px) {
+            .input-container {
+                flex-direction: row;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header-container">
-            <h1>Välkomen till Chegge Golf</h1>
+            <h1>Chegge Golf</h1>
             <div style="display: flex; align-items: center; gap: 10px;">
                 <input type="text" class="name-input" placeholder="Enter name" />
                 <a href="https://github.com/vidarsch/Chegge" target="_blank" class="github-link">
@@ -192,7 +260,13 @@
         </div>
        
         <div id="messages"></div>
-        <input type="text" class="message-input" placeholder="Type a message..." style="width: 100%; padding: 8px; margin-top: 10px; border: 2px solid #2E5A27; border-radius: 5px;" />
+        <div class="input-container">
+            <label for="image-upload" class="upload-button">
+                📷
+            </label>
+            <input type="file" id="image-upload" accept="image/*" capture="environment" />
+            <input type="text" class="message-input" placeholder="Type a message..." />
+        </div>
     </div>
     <!-- <div class="invisible-bottom-div" id="bottomDiv">
         <div class="golf-container">

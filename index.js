@@ -42,11 +42,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     messageInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && this.value.length > 0) {
             console.log('Enter pressed');
             sendMessage(this.value,document.querySelector('.name-input').value);
         }
     });
+    messageInput.addEventListener('focusout', function(e) {
+        if (this.value.length > 0) {
+            sendMessage(this.value,document.querySelector('.name-input').value);
+        }
+
+    });
 
 });
+
 
