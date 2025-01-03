@@ -39,7 +39,11 @@ document.addEventListener('DOMContentLoaded', function() {
         appendMessage('Error: ' + error.message);
     };
     function fetchMessages() {
+        console.log("fetchMessages");
+        console.log(ws.readyState);
+        console.log(WebSocket.OPEN);
         if (ws.readyState === WebSocket.OPEN) {
+            console.log("fetchMessages");
             ws.send(JSON.stringify({type: "fetch_messages"}));
         }
     }

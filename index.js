@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: isImage ? "message-image" : "message",
                 name: name.trim() || "Anonymous"
             };
-
+            console.log(payload);
+            console.log("sdfsadfsdf");
             if (isImage) {
                 payload.image = content;
             } else {
@@ -66,6 +67,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     reader.onload = function(e) {
         const base64Image = e.target.result.split(',')[1]; 
+        console.log(e.target);
+        console.log("base64Image");
         sendMessage(base64Image, nameInput.value, true);
         imageUpload.value = '';
     }
