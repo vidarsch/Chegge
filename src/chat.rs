@@ -31,6 +31,16 @@ impl ServerState {
         self.tx.send(msg).map(|_| ())
     }
 
+    pub async fn broadcast_image(&self, msg: ChatMessage) -> Result<(), broadcast::error::SendError<ChatMessage>> {
+        if let Err(e) = self.save_image(&msg).await {
+            eprintln!("Error saving message to database: {}", e);
+        }
+        let mut modified_msg = msg.clone();
+        modified_msg.message = format!("img {}", msg.message);
+        println!("Broadcasting message from {}: {}", msg.name, modified_msg.message);
+        self.tx.send(modified_msg).map(|_| ())
+    }
+
     async fn save_message(&self, msg: &ChatMessage) -> Result<(), SqlxError> {
         sqlx::query(
             "INSERT INTO messages (message, unique_user, created_at) 
@@ -44,9 +54,22 @@ impl ServerState {
         Ok(())
     }
 
+    async fn save_image(&self, msg: &ChatMessage) -> Result<(), SqlxError> {
+        sqlx::query(
+            "INSERT INTO messages (img, unique_user, created_at) 
+             VALUES (?, ?, NOW())"
+        )
+        .bind(&msg.message)
+        .bind(&msg.name)
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
+    }
+
     pub async fn fetch_recent_messages(&self) -> Result<WsMessage, SqlxError> {
         let messages: Vec<(String, String)> = sqlx::query_as(
-            "SELECT message, unique_user FROM messages 
+            "SELECT CONCAT(IF(message IS NULL,'img ','mes '),IFNULL(img,message)), unique_user FROM messages 
              ORDER BY created_at DESC LIMIT 50"
         )
         .fetch_all(&self.pool)

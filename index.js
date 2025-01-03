@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const nameInput = document.querySelector('.name-input');
     const ws = new WebSocket('ws://92.113.145.13:8080');
     document.querySelector('.name-input').value = getCookie();
+    const reader = new FileReader();
 
     function sendName(name) {
         //document.cookie = "username=hej"; // + name;
@@ -24,9 +25,18 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const messageInput = document.querySelector('.message-input');
+    const imageUpload = document.querySelector('#image-upload');
 
-    function sendMessage(message, name) {
+    function sendMessage(message, name, image = false) {
         if (ws.readyState === WebSocket.OPEN && message.length > 0) {
+            if (image) {
+                name = name.length > 0 ? name : "Anonymous";
+                ws.send(JSON.stringify({
+                    type: "message-image",
+                    message: message, // base64 kanske korkat?
+                    name: name
+                }));
+            } else {
             name = name.length > 0 ? name : "Anonymous";
             ws.send(JSON.stringify({
                 type: "message",
@@ -34,8 +44,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: name
             }));
             messageInput.value = '';
-            
+            }
             console.log('Sent message:', message);
+
         } else {
             appendMessage("Laggbugg", "Något gick fel");
         }
@@ -52,6 +63,14 @@ document.addEventListener('DOMContentLoaded', function() {
             sendMessage(this.value,document.querySelector('.name-input').value);
         }
 
+    });
+
+    imageUpload.addEventListener('change', function(e) {
+        reader.readAsDataURL(e.target.files[0]);
+        reader.onload = function(e) {
+            console.log(e.target.result);
+            sendMessage(e.target.result,document.querySelector('.name-input').value,true);
+        }
     });
 
 });

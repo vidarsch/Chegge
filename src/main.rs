@@ -14,6 +14,7 @@ use tokio::sync::broadcast::error::RecvError;
 use tokio::time::{interval, Duration};
 use std::sync::atomic::{AtomicBool, Ordering};
 use tokio_tungstenite::tungstenite::Message as WsMessage;
+use dotenv;
 
 #[derive(Deserialize)]
 struct IncomingMessage {
@@ -40,12 +41,15 @@ struct ClientInfo {
 
 #[tokio::main]
 async fn main() {
+    dotenv::dotenv().ok();
+    use std::env;
+
     let db_config = DbConfig {
         host: "localhost".to_string(),
         port: 3306,
-        username: "admin".to_string(),
-        password: "mNJw246a5CkL".to_string(),
-        database: "cheggeserver".to_string(),
+        username: env::var("DB_USER").expect("DB_USER environment variable is not set"),
+        password: env::var("DB_PASSWORD").expect("DB_PASSWORD environment variable is not set"),
+        database: env::var("DB_SERVER").expect("DB_SERVER environment variable is not set"),
     };
 
     let db_url = format!(
@@ -190,6 +194,16 @@ async fn handle_connection(
                                         };
                                         println!("Received message from {}: {}", addr, chat_msg.message);
                                         if let Err(e) = state_clone.broadcast_message(chat_msg).await {
+                                            eprintln!("Error broadcasting message: {}", e);
+                                        }
+                                    },
+                                    "message-image" => {
+                                        let chat_msg = ChatMessage {
+                                            name: incoming.name.unwrap_or_else(|| "Anonymous".to_string()),
+                                            message: incoming.message.unwrap_or_default(),
+                                        };
+                                        println!("Received message from {}: {}", addr, chat_msg.message);
+                                        if let Err(e) = state_clone.broadcast_image(chat_msg).await {
                                             eprintln!("Error broadcasting message: {}", e);
                                         }
                                     },
