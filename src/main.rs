@@ -23,6 +23,7 @@ struct IncomingMessage {
     width: Option<u32>,
     message: Option<String>,
     name: Option<String>,
+    image: Option<String>,
 }
 
 struct DbConfig {
@@ -190,9 +191,14 @@ async fn handle_connection(
                                     "message" => {
                                         let chat_msg = ChatMessage {
                                             name: incoming.name.unwrap_or_else(|| "Anonymous".to_string()),
-                                            message: incoming.message.unwrap_or_default(),
+                                            message: incoming.message.clone(),
+                                            image: None,
                                         };
-                                        println!("Received message from {}: {}", addr, chat_msg.message);
+                                        if let Some(ref msg_text) = chat_msg.message {
+                                            println!("Received message from {}: {}", addr, msg_text);
+                                        } else {
+                                            println!("Received message from {}: <no message>", addr);
+                                        }
                                         if let Err(e) = state_clone.broadcast_message(chat_msg).await {
                                             eprintln!("Error broadcasting message: {}", e);
                                         }
@@ -200,11 +206,12 @@ async fn handle_connection(
                                     "message-image" => {
                                         let chat_msg = ChatMessage {
                                             name: incoming.name.unwrap_or_else(|| "Anonymous".to_string()),
-                                            message: incoming.message.unwrap_or_default(),
+                                            message: None,
+                                            image: incoming.image.clone(),
                                         };
-                                        println!("Received message from {}: {}", addr, chat_msg.message);
+                                        println!("Received image from {}", addr);
                                         if let Err(e) = state_clone.broadcast_image(chat_msg).await {
-                                            eprintln!("Error broadcasting message: {}", e);
+                                            eprintln!("Error broadcasting image: {}", e);
                                         }
                                     },
                                     "fetch_messages" => {

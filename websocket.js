@@ -12,24 +12,19 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     ws.onmessage = function(event) {
-        console.log('Received:', event);
-        if (event.type === "message") { 
-            let data = JSON.parse(event.data);
-            console.log(data);
-            if (data.uid) {
-                uid = data.uid;
-            }
-            if (!data.name) {
-                data.reverse().forEach(message => {
-                    appendMessage(message[1], message[0]);
-                });
+        try {
+            const data = JSON.parse(event.data);
+            const { type, name, message, image } = data;
+
+            if (type === "message") {
+                appendMessage(name, message, null);
+            } else if (type === "message-image") {
+                appendMessage(name, null, image);
             } else {
-                appendMessage(data.name, data.message);
+                console.log("neine");
             }
-        } else {
-            console.log('Received:', event);
-            console.log('Received:', event.data);
-            appendMessage(`Received: ${event.data}`);
+        } catch (error) {
+            console.error('Failed to parse incoming message:', error);
         }
     };
 
@@ -66,19 +61,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
 function retryConnection() {
     ws = new WebSocket('ws://92.113.145.13:8080');
 }
 
-function appendMessage(user, message) {
+function appendMessage(user, message = null, image = null) {
     const messagesDiv = document.getElementById('messages');
     const messageElement = document.createElement('div');
-    user != undefined ? user = escapeHtml(user) : user;
-    message != undefined ? message = escapeHtml(message) : message;
-    console.log(user);
-    console.log(message);
     messageElement.className = 'message';
-    messageElement.innerHTML = `<span class="user">${user}:</span><span class="text">${message}</span>`;
+
+    const safeUser = escapeHtml(user);
+
+    if (message) {
+        const safeMessage = escapeHtml(message);
+        messageElement.innerHTML = `<span class="user">${safeUser}:</span> <span class="text">${safeMessage}</span>`;
+    } else if (image) {
+        const imgSrc = `data:image/png;base64,${image}`;
+        messageElement.innerHTML = `<span class="user">${safeUser}:</span> <img src="${imgSrc}" alt="Image" class="image">`;
+    }
+
     messagesDiv.appendChild(messageElement);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }

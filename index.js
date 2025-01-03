@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const nameInput = document.querySelector('.name-input');
     const ws = new WebSocket('ws://92.113.145.13:8080');
-    document.querySelector('.name-input').value = getCookie();
+    document.querySelector('.name-input').value = getCookie() || '';
     const reader = new FileReader();
 
     function sendName(name) {
@@ -26,29 +26,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const messageInput = document.querySelector('.message-input');
     const imageUpload = document.querySelector('#image-upload');
+    
+    function sendMessage(content, name, isImage = false) {
+        if (ws.readyState === WebSocket.OPEN && content.trim().length > 0) {
+            const payload = {
+                type: isImage ? "message-image" : "message",
+                name: name.trim() || "Anonymous"
+            };
 
-    function sendMessage(message, name, image = false) {
-        if (ws.readyState === WebSocket.OPEN && message.length > 0) {
-            if (image) {
-                name = name.length > 0 ? name : "Anonymous";
-                ws.send(JSON.stringify({
-                    type: "message-image",
-                    message: message, // base64 kanske korkat?
-                    name: name
-                }));
+            if (isImage) {
+                payload.image = content;
             } else {
-            name = name.length > 0 ? name : "Anonymous";
-            ws.send(JSON.stringify({
-                type: "message",
-                message: message,
-                name: name
-            }));
-            messageInput.value = '';
+                payload.message = content.trim();
+                messageInput.value = ''; // Clear input after sending
             }
-            console.log('Sent message:', message);
 
+            ws.send(JSON.stringify(payload));
+            console.log(`Sent ${isImage ? "image" : "message"}:`, payload);
         } else {
-            appendMessage("Laggbugg", "Något gick fel");
+            appendMessage("Laggbuggg", "Nej tack");
         }
     }
 
@@ -67,11 +63,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     imageUpload.addEventListener('change', function(e) {
         reader.readAsDataURL(e.target.files[0]);
-        reader.onload = function(e) {
-            console.log(e.target.result);
-            sendMessage(e.target.result,document.querySelector('.name-input').value,true);
-        }
     });
+    reader.onload = function(e) {
+        const base64Image = e.target.result.split(',')[1]; 
+        sendMessage(base64Image, nameInput.value, true);
+        imageUpload.value = '';
+    }
 
 });
 
