@@ -99,15 +99,32 @@ impl ServerState {
     }
 
     pub async fn fetch_recent_messages(&self) -> Result<WsMessage, SqlxError> {
-        let messages: Vec<(String, String)> = sqlx::query_as(
-            "SELECT CONCAT(IF(message IS NULL,'img ','mes '),IFNULL(img,message)), unique_user FROM messages 
-             ORDER BY created_at DESC LIMIT 50"
+        info!("Fetching recent messages from database");
+        
+        let messages: Vec<(String, String, i32)> = match sqlx::query_as(
+            "SELECT IFNULL(img,message) AS content, unique_user AS name, IF(message IS NULL, 1, 0) AS is_image FROM messages 
+             ORDER BY created_at DESC LIMIT 20"
         )
         .fetch_all(&self.pool)
-        .await?;
+        .await {
+            Ok(msgs) => msgs,
+            Err(e) => {
+                error!("Failed to fetch messages: {}", e);
+                return Err(e);
+            }
+        };
+
+        let response = messages.into_iter().map(|(content, name, is_image)| {
+            serde_json::json!({
+                "type": if is_image == 1 { "message-image" } else { "message" },
+                "name": name,
+                "message": if is_image == 0 { Some(content.clone()) } else { None },
+                "image": if is_image == 1 { Some(content.clone()) } else { None }
+            })
+        }).collect::<Vec<_>>();
 
         Ok(WsMessage::Text(
-            serde_json::to_string(&messages).unwrap()
+            serde_json::to_string(&response).unwrap()
         ))
     }
 }

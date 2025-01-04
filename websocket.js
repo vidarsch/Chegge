@@ -40,12 +40,17 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     function fetchMessages() {
         console.log("fetchMessages");
-        console.log(ws.readyState);
-        console.log(WebSocket.OPEN);
+        console.log("WebSocket state:", ws.readyState); 
+        console.log("WebSocket.OPEN value:", WebSocket.OPEN);
+        
         if (ws.readyState === WebSocket.OPEN) {
-            console.log("fetchMessages");
-            ws.send(JSON.stringify({type: "fetch_messages"}));
-        }
+            try {
+                const payload = JSON.stringify({type: "fetch_messages"});
+                ws.send(payload);
+            } catch (error) {
+                console.error("Error sending fetch_messages:", error);
+            }
+        } 
     }
     const tickrate = 500;
     /* setInterval(() => {
@@ -68,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function retryConnection() {
     ws = new WebSocket('ws://92.113.145.13:8080');
+    console.log("retryConnection");
 }
 
 function appendMessage(user, message = null, image = null) {
@@ -98,3 +104,12 @@ function escapeHtml(unsafe)
          .replace(/"/g, "&quot;")
          .replace(/'/g, "&#039;");
  }
+document.addEventListener('focus', function() {
+    if (ws.readyState === WebSocket.OPEN) {
+        return;
+    } else {
+        retryConnection();
+        return;
+    }
+});
+
