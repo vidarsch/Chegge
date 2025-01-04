@@ -118,10 +118,10 @@ impl ServerState {
 
         let response = messages.into_iter().map(|(content, name, is_image)| {
             ChatMessage {
-                r#type: if is_image == 1 { "message-image".to_string() } else { "message".to_string() },
+                r#type: if is_image == 0 { "message".to_string() } else { "message-image".to_string() },
                 name,
-                message: if is_image == 0 { Some(String::from_utf8_lossy(&content).to_string()) } else { None },
-                image: if is_image == 1 { Some(encode(content.clone())) } else { None },
+                message: if is_image == 1 { Some(encode(content.clone())) } else { None },
+                image: if is_image == 0 { Some(String::from_utf8_lossy(&content).to_string()) } else { None },
             }
         }).collect::<Vec<_>>();
 

@@ -12,19 +12,21 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     ws.onmessage = function(event) {
-
+        console.log(event);
         try {
             const data = JSON.parse(event.data);
-            const { type, name, message, image } = data;
             console.log(data);
-            console.log("jasdjkdsa");
-            if (type === "message") {
-                appendMessage(name, message, null);
-            } else if (type === "message-image") {
-                appendMessage(name, null, image);
+            if (data.length === undefined) {
+                const { type, name, message, image } = data;
+                appendMessage(name, message, image);
+                
             } else {
-                console.log("neine");
+                for (const element of data) {
+                    //console.log(element);
+                    appendMessage(element.name, element.image, element.message);
+                }
             }
+           
         } catch (error) {
             console.error('Failed to parse incoming message:', error);
         }
