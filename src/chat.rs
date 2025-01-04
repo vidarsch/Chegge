@@ -11,6 +11,7 @@ use std::error::Error;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ChatMessage {
+    pub r#type: String,
     pub name: String,
     pub message: Option<String>,
     pub image: Option<String>, // Base64-encoded image string
@@ -59,6 +60,7 @@ impl ServerState {
         }
 
         let modified_msg = ChatMessage {
+            r#type: "message-image".to_string(),
             name: msg.name.clone(),
             message: None, 
             image: Some(msg.image.unwrap_or_default()), 
@@ -137,7 +139,7 @@ pub fn format_ws_message(msg: &ChatMessage) -> WsMessage {
     };
     
     let response = serde_json::json!({
-        "type": msg_type,
+        "type": msg.r#type,
         "name": msg.name,
         "message": msg.message,
         "image": msg.image,

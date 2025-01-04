@@ -130,6 +130,9 @@ async fn handle_connection(
 
     let mut ping_interval = interval(Duration::from_secs(30));
 
+    let state_clone_write = state.clone();
+    let tx_internal_clone_write = tx_internal.clone();
+
     let mut write_task = Some(tokio::spawn(async move {
         loop {
             tokio::select! {
@@ -143,12 +146,25 @@ async fn handle_connection(
                 result = rx.recv() => {
                     match result {
                         Ok(msg) => {
-                            let formatted_message = format_ws_message(&msg);
-                            println!("Sending message to {}: {:?}", addr, formatted_message);
-                            if let Err(e) = write.send(formatted_message).await {
-                                eprintln!("Error sending message to {}: {}", addr, e);
-                                is_active_write.store(false, Ordering::SeqCst);
-                                break;
+                            match msg.r#type.as_str() {
+                                "fetch_messages" => {
+                                    println!("Received fetch_messages from {}", addr);
+                                    if let Ok(messages) = state_clone_write.fetch_recent_messages().await {
+                                        println!("Sending message history to {}", addr);
+                                        if let Err(e) = tx_internal_clone_write.send(messages).await {
+                                            eprintln!("Error sending message history to {}: {}", addr, e);
+                                        }
+                                    }
+                                },
+                                _ => {
+                                    let formatted_message = format_ws_message(&msg);
+                                    println!("Sending message to {}: {:?}", addr, formatted_message);
+                                    if let Err(e) = write.send(formatted_message).await {
+                                        eprintln!("Error sending message to {}: {}", addr, e);
+                                        is_active_write.store(false, Ordering::SeqCst);
+                                        break;
+                                    }
+                                }
                             }
                         }
                         Err(RecvError::Lagged(count)) => {
@@ -190,6 +206,7 @@ async fn handle_connection(
                                 match incoming.r#type.as_str() {
                                     "message" => {
                                         let chat_msg = ChatMessage {
+                                            r#type: "message".to_string(),
                                             name: incoming.name.unwrap_or_else(|| "Anonymous".to_string()),
                                             message: incoming.message.clone(),
                                             image: None,
@@ -205,6 +222,7 @@ async fn handle_connection(
                                     },
                                     "message-image" => {
                                         let chat_msg = ChatMessage {
+                                            r#type: "message-image".to_string(),
                                             name: incoming.name.unwrap_or_else(|| "Anonymous".to_string()),
                                             message: None,
                                             image: incoming.image.clone(),

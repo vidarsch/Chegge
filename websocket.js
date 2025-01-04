@@ -6,16 +6,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     ws.onopen = function() {
         console.log('Connected to WebSocket server');
-        appendMessage('Connected to server');
-        fetchMessages();
+        appendMessage('Connected to server', "halal");
+        fetchMessages(ws);
         //getTerrain(document.getElementById('bottomDiv').offsetHeight, document.getElementById('bottomDiv').offsetWidth);
     };
 
     ws.onmessage = function(event) {
+
         try {
             const data = JSON.parse(event.data);
             const { type, name, message, image } = data;
-
+            console.log(type);
+            console.log("jasdjkdsa");
             if (type === "message") {
                 appendMessage(name, message, null);
             } else if (type === "message-image") {
@@ -38,20 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.error('WebSocket error:', error);
         appendMessage('Error: ' + error.message);
     };
-    function fetchMessages() {
-        console.log("fetchMessages");
-        console.log("WebSocket state:", ws.readyState); 
-        console.log("WebSocket.OPEN value:", WebSocket.OPEN);
-        
-        if (ws.readyState === WebSocket.OPEN) {
-            try {
-                const payload = JSON.stringify({type: "fetch_messages"});
-                ws.send(payload);
-            } catch (error) {
-                console.error("Error sending fetch_messages:", error);
-            }
-        } 
-    }
+    
     const tickrate = 500;
     /* setInterval(() => {
         if (ws.readyState === WebSocket.OPEN) {
@@ -93,6 +82,22 @@ function appendMessage(user, message = null, image = null) {
 
     messagesDiv.appendChild(messageElement);
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function fetchMessages(ws) {
+    console.log("fetchMessages");
+    console.log("WebSocket state:", ws.readyState); 
+    console.log("WebSocket.OPEN value:", WebSocket.OPEN);
+    
+    if (ws.readyState === WebSocket.OPEN) {
+        try {
+            const payload = { type: "fetch_messages" };
+            console.log("Sending payload:", payload);
+            ws.send(JSON.stringify(payload));
+        } catch (error) {
+            console.error("Error sending fetch_messages:", error);
+        }
+    } 
 }
 
 function escapeHtml(unsafe)
