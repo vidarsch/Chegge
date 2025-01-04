@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::mysql::MySqlPool;
 use sqlx::Error as SqlxError;
 use tokio_tungstenite::tungstenite::Message as WsMessage;
-use base64::{decode, DecodeError};
+use base64::{decode, encode, DecodeError};
 use log::{error, info};
 use anyhow::{Result, anyhow};
 use std::error::Error;
@@ -103,7 +103,7 @@ impl ServerState {
     pub async fn fetch_recent_messages(&self) -> Result<Vec<ChatMessage>, SqlxError> {
         info!("Fetching recent messages from database");
         
-        let messages: Vec<(String, String, i32)> = match sqlx::query_as(
+        let messages: Vec<(Vec<u8>, String, i32)> = match sqlx::query_as(
             "SELECT IFNULL(img, message) AS content, unique_user AS name, IF(message IS NULL, 1, 0) AS is_image FROM messages 
              ORDER BY created_at DESC LIMIT 20"
         )
@@ -120,8 +120,8 @@ impl ServerState {
             ChatMessage {
                 r#type: if is_image == 1 { "message-image".to_string() } else { "message".to_string() },
                 name,
-                message: if is_image == 0 { Some(content.clone()) } else { None },
-                image: if is_image == 1 { Some(content.clone()) } else { None },
+                message: if is_image == 0 { Some(String::from_utf8_lossy(&content).to_string()) } else { None },
+                image: if is_image == 1 { Some(encode(content.clone())) } else { None },
             }
         }).collect::<Vec<_>>();
 

@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const data = JSON.parse(event.data);
             const { type, name, message, image } = data;
-            console.log(type);
+            console.log(data);
             console.log("jasdjkdsa");
             if (type === "message") {
                 appendMessage(name, message, null);
