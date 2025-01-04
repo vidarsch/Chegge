@@ -122,7 +122,7 @@ async fn handle_connection(
     let (mut write, mut read) = ws_stream.split();
     let mut rx = state.tx.subscribe();
 
-    let (tx_internal, mut rx_internal) = tokio::sync::mpsc::channel(32);
+    let (tx_internal_clone, mut rx_internal) = tokio::sync::mpsc::channel::<WsMessage>(32);
 
     let is_active = Arc::new(AtomicBool::new(true));
     let is_active_write = is_active.clone();
@@ -131,7 +131,7 @@ async fn handle_connection(
     let mut ping_interval = interval(Duration::from_secs(30));
 
     let state_clone_write = state.clone();
-    let tx_internal_clone_write = tx_internal.clone();
+    let tx_internal_clone_write = tx_internal_clone.clone();
 
     let mut write_task = Some(tokio::spawn(async move {
         loop {
@@ -145,26 +145,13 @@ async fn handle_connection(
 
                 result = rx.recv() => {
                     match result {
-                        Ok(msg) => {
-                            match msg.r#type.as_str() {
-                                "fetch_messages" => {
-                                    println!("Received fetch_messages from {}", addr);
-                                    if let Ok(messages) = state_clone_write.fetch_recent_messages().await {
-                                        println!("Sending message history to {}", addr);
-                                        if let Err(e) = tx_internal_clone_write.send(messages).await {
-                                            eprintln!("Error sending message history to {}: {}", addr, e);
-                                        }
-                                    }
-                                },
-                                _ => {
-                                    let formatted_message = format_ws_message(&msg);
-                                    println!("Sending message to {}: {:?}", addr, formatted_message);
-                                    if let Err(e) = write.send(formatted_message).await {
-                                        eprintln!("Error sending message to {}: {}", addr, e);
-                                        is_active_write.store(false, Ordering::SeqCst);
-                                        break;
-                                    }
-                                }
+                        Ok(chat_msg) => {
+                            let ws_message = format_ws_message(&chat_msg);
+                            println!("Sending message to {}: {:?}", addr, ws_message);
+                            if let Err(e) = write.send(ws_message).await {
+                                eprintln!("Error sending message to {}: {}", addr, e);
+                                is_active_write.store(false, Ordering::SeqCst);
+                                break;
                             }
                         }
                         Err(RecvError::Lagged(count)) => {
@@ -179,9 +166,9 @@ async fn handle_connection(
                     }
                 }
 
-                Some(msg) = rx_internal.recv() => {
-                    println!("Sending internal message to {}: {:?}", addr, msg);
-                    if let Err(e) = write.send(msg).await {
+                Some(ws_msg) = rx_internal.recv() => {
+                    println!("Sending internal message to {}: {:?}", addr, ws_msg);
+                    if let Err(e) = write.send(ws_msg).await {
                         eprintln!("Error sending internal message to {}: {}", addr, e);
                         is_active_write.store(false, Ordering::SeqCst);
                         break;
@@ -195,13 +182,14 @@ async fn handle_connection(
 
     let mut read_task = Some(tokio::spawn({
         let state_clone = state.clone();
-        let tx_internal_clone = tx_internal.clone();
+        let tx_internal_clone = tx_internal_clone.clone();
         let is_active_read = is_active_read.clone();
         async move {
             while let Some(result) = read.next().await {
                 match result {
                     Ok(msg) => {
                         if let Ok(text) = msg.to_text() {
+                            println!("Received message from {}: {}", addr, text);
                             if let Ok(incoming) = serde_json::from_str::<IncomingMessage>(text) {
                                 match incoming.r#type.as_str() {
                                     "message" => {
@@ -233,9 +221,13 @@ async fn handle_connection(
                                         }
                                     },
                                     "fetch_messages" => {
+                                        println!("Handling 'fetch_messages' for {}", addr);
                                         if let Ok(messages) = state_clone.fetch_recent_messages().await {
                                             println!("Sending message history to {}", addr);
-                                            if let Err(e) = tx_internal_clone.send(messages).await {
+                                            let serialized_messages = serde_json::to_string(&messages)
+                                                .unwrap_or_else(|_| "[]".to_string());
+                                            let ws_message = WsMessage::Text(serialized_messages);
+                                            if let Err(e) = tx_internal_clone.send(ws_message).await {
                                                 eprintln!("Error sending message history to {}: {}", addr, e);
                                             }
                                         }

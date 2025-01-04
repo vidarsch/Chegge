@@ -100,11 +100,11 @@ impl ServerState {
         Ok(())
     }
 
-    pub async fn fetch_recent_messages(&self) -> Result<WsMessage, SqlxError> {
+    pub async fn fetch_recent_messages(&self) -> Result<Vec<ChatMessage>, SqlxError> {
         info!("Fetching recent messages from database");
         
         let messages: Vec<(String, String, i32)> = match sqlx::query_as(
-            "SELECT IFNULL(img,message) AS content, unique_user AS name, IF(message IS NULL, 1, 0) AS is_image FROM messages 
+            "SELECT IFNULL(img, message) AS content, unique_user AS name, IF(message IS NULL, 1, 0) AS is_image FROM messages 
              ORDER BY created_at DESC LIMIT 20"
         )
         .fetch_all(&self.pool)
@@ -117,27 +117,19 @@ impl ServerState {
         };
 
         let response = messages.into_iter().map(|(content, name, is_image)| {
-            serde_json::json!({
-                "type": if is_image == 1 { "message-image" } else { "message" },
-                "name": name,
-                "message": if is_image == 0 { Some(content.clone()) } else { None },
-                "image": if is_image == 1 { Some(content.clone()) } else { None }
-            })
+            ChatMessage {
+                r#type: if is_image == 1 { "message-image".to_string() } else { "message".to_string() },
+                name,
+                message: if is_image == 0 { Some(content.clone()) } else { None },
+                image: if is_image == 1 { Some(content.clone()) } else { None },
+            }
         }).collect::<Vec<_>>();
 
-        Ok(WsMessage::Text(
-            serde_json::to_string(&response).unwrap()
-        ))
+        Ok(response)
     }
 }
 
 pub fn format_ws_message(msg: &ChatMessage) -> WsMessage {
-    let msg_type = if msg.image.is_some() {
-        "message-image"
-    } else {
-        "message"
-    };
-    
     let response = serde_json::json!({
         "type": msg.r#type,
         "name": msg.name,
