@@ -42,7 +42,7 @@
   <body>
     <marquee FACE="Comic Sans MS" RIGHT="100px" ALIGN="MIDDLE"  width="1100px" behavior="SCROLL" bgcolor="yellow" loop="50">Che Guara Throwdown lets fucking go babbbyyyy         VEM ÄR DET SOM KOMMER VINNA                               SPONSRAD AV ECO BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALLS</marquee>
     <div class="videosCenter">
-      <img id="che1" src="./images/che1.png">
+      <img id="che1" src="./images_troll/che1.png">
       <iframe width="400" height="300" marginwidth="50" src="https://www.youtube.com/embed/GXIo8jj3cl0" title="LÄR ER GOLFA IDAG" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
       <iframe  width="350" height="300" src="https://www.youtube.com/embed/cHs3R9KVJRg" title="Eco Balls" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
     </div>
@@ -50,7 +50,29 @@
       <img style="display: block;-webkit-user-select: none;margin: auto;cursor: zoom-in;background-color: powderblue;" src="https://static.wikia.nocookie.net/5df8e5d3-4e19-437c-a3fa-09a649a54aaf/scale-to-width/755" width="100" height="149">  
       <img src="https://i.annihil.us/u/prod/marvel/movies/captain-marvel/assets/images/carol/title.gif" alt="Carol">
     </div>
-    <div id="classicBar"><img src="images/counter.gif"><img src="images/ns_logo.gif"><img src="images/ie_logo.gif"><img src="images/noframes.gif"><img src="images/notepad.gif"></div> 
+    <div id="classicBar"><img src="images_troll/counter.gif"><img src="images_troll/ns_logo.gif"><img src="images_troll/ie_logo.gif"><img src="images_troll/noframes.gif"><img src="images_troll/notepad.gif"></div> 
     <img src="/web/20000819162953im_/http://www.galaxyquest.com/galaxyquest/images/showle.gif" width="468" height="60" padding-left="100px" border="0" hspace="12">
+    <img src ="./images_troll/Tass.gif" width="468" height="468" padding-left="100px" border="0" hspace="12" position="absolute">
   </body>
 </html>
+<script>
+  var padding = "20px"
+var paddingint = 20
+var sizeTitle = false;
+var countSetInterval = 0;
+var pictureVal = 1;
+
+setInterval(function () {
+  console.log("Delayed for 1 second.");
+  padding = $("#main").css('padding');
+  paddingint = padding.substring(0,padding.length-2);
+  if (paddingint > 50) {
+    sizeTitle = false;
+  } else if (paddingint < 15){
+    sizeTitle = true;
+  }
+  sizeTitle? paddingint++ : paddingint--;
+  document.getElementById("main").style.padding = paddingint+"px";
+  document.getElementById("main").style.fontSize = paddingint+"px";
+}, "100");
+</script>
