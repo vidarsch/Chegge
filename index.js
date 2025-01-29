@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('.name-input').value = getCookie() || '';
     const reader = new FileReader();
     const imageScaler = 1200; // image max width and/or height
+    if (Math.floor(Math.random()*7) == 2) {
+        window.location.href = "hahahaha.html";
+    }
 
     function sendName(name) {
         //document.cookie = "username=hej"; // + name;

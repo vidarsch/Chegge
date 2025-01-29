@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 appendMessage(name, message, image);
                 
             } else {
-                for (const element of data) {
+                let datarev = data.reverse();
+                for (const element of datarev) {
                     //console.log(element);
                     appendMessage(element.name, element.image, element.message);
                 }
